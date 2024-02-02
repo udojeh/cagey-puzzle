@@ -1,11 +1,12 @@
 # =============================
-# Student Names:
-# Group ID:
-# Date:
+# Student Names: Hunter Coker, Brandon Liang, Udo Ojeh
+# Group ID: Group 22
+# Date: February 2nd, 2024
 # =============================
 # CISC 352 - W23
 # cagey_csp.py
-# desc:
+# desc: Provides three unique CSP implementations that take a valid Cagey grid as an input and returns a solution to the puzzle.
+
 #
 
 #Look for #IMPLEMENT tags in this file.
