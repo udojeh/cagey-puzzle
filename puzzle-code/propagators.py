@@ -87,17 +87,52 @@ def prop_BT(csp, newVar=None):
                 return False, []
     return True, []
 
-def prop_FC(csp, newVar=None):
+def prop_FC(csp, newVar=None) -> tuple[bool, list]:
     '''Do forward checking. That is check constraints with
        only one uninstantiated variable. Remember to keep
        track of all pruned variable,value pairs and return '''
-    #IMPLEMENT
-    pass
+    
+    # constraints = []
+    # if newVar is not None:
+    #     constraints = csp.get_cons_with_var(newVar)
+    # else:
+    #     constraints = csp.get_all_cons()
+    
+    # # keeps track of (var, val) tuples that were pruned
+    # pruned = []
 
+    # for c in constraints:
+    #     vars = c.get_scope()
 
-def prop_GAC(csp, newVar=None):
+    #     for var in vars:
+    #         # only try to assign to unassignd variables
+    #         if var.is_assigned():
+    #             continue
+            
+    #         # prune values that should already be pruned
+    #         for tup in pruned:
+    #             val = tup[1]
+    #             if var.in_cur_domain(val):
+    #                 var.prune_value(val)
+
+    #         # try to assign a value to the current variable
+    #         for val in var.cur_domain():
+    #             if c.check_var_val(var, val):
+    #                 var.assign(val)
+    #                 pruned.append((var, val))
+    #                 break
+    #             else:
+    #                 var.prune_value(val)
+
+    #         # check if dead end -- could not assign a value to variable
+    #         if len(var.cur_domain()) == 0:
+    #             return False, pruned
+
+    return True, []
+
+def prop_GAC(csp, newVar=None) -> tuple[bool, list]:
     '''Do GAC propagation. If newVar is None we do initial GAC enforce
        processing all constraints. Otherwise we do GAC enforce with
        constraints containing newVar on GAC Queue'''
-    #IMPLEMENT
-    pass
+
+    return True, []
