@@ -92,47 +92,58 @@ def prop_FC(csp, newVar=None) -> tuple[bool, list]:
        only one uninstantiated variable. Remember to keep
        track of all pruned variable,value pairs and return '''
     
-    # constraints = []
-    # if newVar is not None:
-    #     constraints = csp.get_cons_with_var(newVar)
-    # else:
-    #     constraints = csp.get_all_cons()
-    
-    # # keeps track of (var, val) tuples that were pruned
-    # pruned = []
+    # determine a set of constraints to check
+    cons = []
+    if newVar is not None:
+        cons = csp.get_cons_with_var(newVar)
+    else:
+        cons = csp.get_all_cons()
+    # keeps track of (var, val) tuples that were pruned
+    pruned = []
+    for c in cons:
+        for var in c.get_scope():
+            # prune variables that do not satisfy constraints
+            for val in var.cur_domain():
+                if c.check_var_val(var, val):
+                    pass
+                else:
+                    var.prune_value(val)
+                    pruned.append((var, val))
+            # check if dead end -- could not assign a value to variable
+            if not var.cur_domain():
+                return False, pruned
 
-    # for c in constraints:
-    #     vars = c.get_scope()
-
-    #     for var in vars:
-    #         # only try to assign to unassignd variables
-    #         if var.is_assigned():
-    #             continue
-            
-    #         # prune values that should already be pruned
-    #         for tup in pruned:
-    #             val = tup[1]
-    #             if var.in_cur_domain(val):
-    #                 var.prune_value(val)
-
-    #         # try to assign a value to the current variable
-    #         for val in var.cur_domain():
-    #             if c.check_var_val(var, val):
-    #                 var.assign(val)
-    #                 pruned.append((var, val))
-    #                 break
-    #             else:
-    #                 var.prune_value(val)
-
-    #         # check if dead end -- could not assign a value to variable
-    #         if len(var.cur_domain()) == 0:
-    #             return False, pruned
-
-    return True, []
+    return True, pruned
 
 def prop_GAC(csp, newVar=None) -> tuple[bool, list]:
     '''Do GAC propagation. If newVar is None we do initial GAC enforce
        processing all constraints. Otherwise we do GAC enforce with
        constraints containing newVar on GAC Queue'''
 
-    return True, []
+    # initialize queue with constraints
+    con_queue = []
+    if newVar is None:
+        con_queue = csp.get_all_cons()
+    else:
+        con_queue = csp.get_cons_with_var(newVar)
+
+    pruned = []
+    while con_queue:
+        con = con_queue.pop(0)
+        for var in con.get_scope():
+            # prune variables that do not satisfy constraints
+            for val in var.cur_domain():
+                if con.check_var_val(var, val):
+                    pass
+                else:
+                    var.prune_value(val)
+                    pruned.append((var, val))
+                    # add possibly impacted constraints back to queue
+                    for neighbor_con in csp.get_cons_with_var(var):
+                        if neighbor_con not in con_queue:
+                            con_queue.append(neighbor_con)
+            # check if dead end -- could not assign a value to variable
+            if not var.cur_domain():
+                return False, pruned
+    
+    return True, pruned
