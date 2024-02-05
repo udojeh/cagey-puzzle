@@ -86,15 +86,113 @@ An example of a 3x3 puzzle would be defined as:
 
 from cspbase import *
 
-def binary_ne_grid(cagey_grid):
-    ##IMPLEMENT
-    pass
+from itertools import permutations
 
+def binary_ne_grid(cagey_grid):
+    n = cagey_grid[0]  # Gets the grid size N from the input Cagey Grid
+
+    # Creates variables representing each cell in the grid with a domain from 1 to n
+    variables = [Variable(f"Cell({i+1},{j+1})", list(range(1, n+1))) for i in range(n) for j in range(n)]
+    constraints = []
+
+    # Rows: Binary not-equal constraints
+    for i in range(1, n+1):
+        for j in range(1, n):
+            for k in range(j + 1, n + 1):
+                # Create a binary not-equal constraint for each pair of cells in the same row
+                constraint = Constraint(f"Row_NE_{i}_{j}_{k}", [variables[(i-1)*n + j - 1], variables[(i-1)*n + k - 1]])
+                constraint.add_satisfying_tuples([(x, y) for x in range(1, n+1) for y in range(1, n+1) if x != y])
+                constraints.append(constraint)
+
+    # Columns: Binary not-equal constraints
+    for i in range(1, n+1):
+        for j in range(1, n):
+            for k in range(j + 1, n + 1):
+                # Create a binary not-equal constraint for each pair of cells in the same column
+                constraint = Constraint(f"Col_NE_{i}_{j}_{k}", [variables[(j-1)*n + i - 1], variables[(k-1)*n + i - 1]])
+                constraint.add_satisfying_tuples([(x, y) for x in range(1, n+1) for y in range(1, n+1) if x != y])
+                constraints.append(constraint)
+
+    # Creates a CSP with a name and the list of variables
+    csp = CSP("binary_ne_grid", variables)
+
+    # Adds all of the constraints to the newly created CSP
+    for constraint in constraints:
+        csp.add_constraint(constraint)
+
+    return csp, variables
 
 def nary_ad_grid(cagey_grid):
-    ## IMPLEMENT
-    pass
+    n = cagey_grid[0] # Gets the grid size N from the input Cagey Grid
+
+    # Creates variables representing each cell in the grid with a domain from 1 to n
+    variables = [Variable(f"Cell({i+1},{j+1})", list(range(1, n+1))) for i in range(n) for j in range(n)]
+    constraints = []
+
+    # Rows: N-ary all-different constraints
+    for i in range(1, n+1):     
+        # 1. Gets all the variables in the same row
+        variables_in_row = [variables[(i-1)*n + j] for j in range(n)]
+
+        # 2. Creates an N-ary constraint for that row
+        constraint = Constraint(f"Row_{i}", variables_in_row)
+
+        # 3. Add satisfying tuples for the constraint (In this case, all permutations of values from 1 to n)
+        constraint.add_satisfying_tuples([tuple(row) for row in permutations(range(1, n+1))])
+
+        # 4. Add the constraint to the list of constraints
+        constraints.append(constraint)
+
+    # Columns: N-ary all-different constraints 
+    for i in range(1, n+1):
+
+        # 1. Gets all the variables in the same column
+        variables_in_col = [variables[(j-1)*n + i - 1] for j in range(1, n+1)]
+
+        # 2. Creates an N-ary constraint for that column
+        constraint = Constraint(f"Col_{i}", variables_in_col)
+
+        # 3. Add satisfying tuples for the constraint (In this case, all permutations of values from 1 to n)
+        constraint.add_satisfying_tuples([tuple(col) for col in permutations(range(1, n+1))])
+
+        # 4. Add the constraint to the list of constraints
+        constraints.append(constraint)
+
+    # Creates a CSP with a name and the list of variables
+    csp = CSP("nary_ad_grid", variables)
+
+    # Adds all of the constraints to the newly created CSP
+    for constraint in constraints:
+        csp.add_constraint(constraint)
+
+    return csp, variables
 
 def cagey_csp_model(cagey_grid):
-    ##IMPLEMENT
-    pass
+    
+    csp, variables = nary_ad_grid(cagey_grid)
+    n = cagey_grid[0] # Gets the grid size N from the input Cagey Grid
+    constraints = csp.get_all_cons()
+
+    # Cage constraints
+    operand_variables = []
+
+    for cage in cagey_grid[1]:
+        v = cage[0]
+        indices = cage[1]
+        op = cage[2]
+        cage_variables = [variables[(i-1)*n + j - 1] for i, j in indices]
+        # Operand variable for the cage
+        operand_variable = Variable(f"Cage_op({v}:{op})", ["+", "-", "*", "/"])
+        operand_variables.append(operand_variable)
+        constraints.append(Constraint(f"Cage_{v}_{op}", [operand_variable] + cage_variables))
+
+    variables += operand_variables
+
+    # Creates a CSP with a name and the list of variables
+    csp = CSP("cagey_csp_model", variables)
+
+    # Adds all of the constraints to the newly created CSP
+    for constraint in constraints:
+        csp.add_constraint(constraint)
+
+    return csp, variables
