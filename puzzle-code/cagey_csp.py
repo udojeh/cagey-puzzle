@@ -5,7 +5,7 @@
 # =============================
 # CISC 352 - W23
 # cagey_csp.py
-# desc: Provides three unique CSP implementations that take a valid Cagey grid as an input and returns a solution to the puzzle.
+# desc: Provides three unique CSP implementations that take a valid Cagey grid as an input and returns a csp and a list of variables.
 
 #
 

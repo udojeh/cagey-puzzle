@@ -1,11 +1,11 @@
 # =============================
-# Student Names:
-# Group ID:
-# Date:
+# Student Names: Hunter Coker, Brandon Liang, Udo Ojeh
+# Group ID: Group 22
+# Date: February 2nd, 2024
 # =============================
 # CISC 352 - W23
 # heuristics.py
-# desc:
+# desc: Contains 2 different heuristic implementations that return variables.
 #
 
 
