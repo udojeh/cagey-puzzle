@@ -87,7 +87,7 @@ def prop_BT(csp, newVar=None):
                 return False, []
     return True, []
 
-def prop_FC(csp, newVar=None) -> tuple[bool, list]:
+def prop_FC(csp, newVar=None):
     '''Do forward checking. That is check constraints with
        only one uninstantiated variable. Remember to keep
        track of all pruned variable,value pairs and return '''
@@ -115,7 +115,7 @@ def prop_FC(csp, newVar=None) -> tuple[bool, list]:
 
     return True, pruned
 
-def prop_GAC(csp, newVar=None) -> tuple[bool, list]:
+def prop_GAC(csp, newVar=None):
     '''Do GAC propagation. If newVar is None we do initial GAC enforce
        processing all constraints. Otherwise we do GAC enforce with
        constraints containing newVar on GAC Queue'''

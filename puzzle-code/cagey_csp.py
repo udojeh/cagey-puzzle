@@ -86,6 +86,8 @@ An example of a 3x3 puzzle would be defined as:
 
 from cspbase import *
 
+from itertools import product
+
 from itertools import permutations
 
 def binary_ne_grid(cagey_grid):
@@ -147,13 +149,13 @@ def nary_ad_grid(cagey_grid):
     for i in range(1, n+1):
 
         # 1. Gets all the variables in the same column
-        variables_in_col = [variables[(j-1)*n + i - 1] for j in range(1, n+1)]
+        variables_in_column = [variables[(j-1)*n + i - 1] for j in range(1, n+1)]
 
         # 2. Creates an N-ary constraint for that column
-        constraint = Constraint(f"Col_{i}", variables_in_col)
+        constraint = Constraint(f"Col_{i}", variables_in_column)
 
         # 3. Add satisfying tuples for the constraint (In this case, all permutations of values from 1 to n)
-        constraint.add_satisfying_tuples([tuple(col) for col in permutations(range(1, n+1))])
+        constraint.add_satisfying_tuples([tuple(column) for column in permutations(range(1, n+1))])
 
         # 4. Add the constraint to the list of constraints
         constraints.append(constraint)
@@ -180,13 +182,51 @@ def cagey_csp_model(cagey_grid):
         v = cage[0]
         indices = cage[1]
         op = cage[2]
+        
+        var_names = [f"Var-Cell({i},{j})" for (i, j) in indices]
         cage_variables = [variables[(i-1)*n + j - 1] for i, j in indices]
-        # Operand variable for the cage
-        operand_variable = Variable(f"Cage_op({v}:{op})", ["+", "-", "*", "/"])
-        operand_variables.append(operand_variable)
-        constraints.append(Constraint(f"Cage_{v}_{op}", [operand_variable] + cage_variables))
 
-    variables += operand_variables
+        operand_variable = Variable(f"Cage_op({v}:{op}:[{', '.join(var_names)}])", ["+", "-", "*", "/"])
+        operand_variables.append(operand_variable)
+
+        # Generating Satisfying Tuples
+        
+        # Generate all possible combinations of values for the cage variables
+        satisfying_tuples = []
+        variable_values = [range(1, n + 1) for _ in indices]
+        variable_combinations = product(*variable_values)
+
+        # Check each combination and add to satisfying tuples if it satisfies the cage constraint
+        for values in variable_combinations:
+
+            # Apply the specified operation to the values
+            if op == '+':
+                result = sum(values)
+            elif op == '-':
+                result = values[0] - sum(values[1:])
+            elif op == '*':
+                result = 1
+                for value in values:
+                    result *= value
+            elif op == '/':
+                if all(value % values[0] == 0 for value in values[1:]):
+                    result = values[1] // values[0]
+            elif op == '?':
+                # Unknown operation: return any result
+                result = sum(values)
+            if result == v:
+                satisfying_tuple = (op,) + values
+                satisfying_tuples.append(satisfying_tuple)
+
+        # Creates a cage constraint and adds the satisfying tuples for the constraint
+        constraint = Constraint(f"Cage_{v}_{op}", [operand_variable] + cage_variables)
+        constraint.add_satisfying_tuples(satisfying_tuples)
+
+        # Adds the cnew constraint to the list of all constraints
+        constraints.append(constraint)
+
+    # Adds the operand variables to the list of alll variables (variables from the created grid)
+    variables += operand_variables 
 
     # Creates a CSP with a name and the list of variables
     csp = CSP("cagey_csp_model", variables)
